@@ -9,12 +9,14 @@ This is a T3 Stack application built with Next.js 15, TypeScript, tRPC, Prisma, 
 ## Commands
 
 ### Development
+
 - `npm run dev` - Start development server with Turbo
 - `npm run build` - Build the application for production
 - `npm run start` - Start production server
 - `npm run preview` - Build and start production server
 
 ### Code Quality
+
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Run ESLint with auto-fix
 - `npm run typecheck` - Run TypeScript type checking
@@ -23,6 +25,7 @@ This is a T3 Stack application built with Next.js 15, TypeScript, tRPC, Prisma, 
 - `npm run format:write` - Format code with Prettier
 
 ### Database
+
 - `npm run db:generate` - Generate Prisma client and run migrations
 - `npm run db:migrate` - Deploy database migrations
 - `npm run db:push` - Push schema changes to database
@@ -31,32 +34,38 @@ This is a T3 Stack application built with Next.js 15, TypeScript, tRPC, Prisma, 
 ## Architecture
 
 ### tRPC API Structure
+
 - **Root Router**: `src/server/api/root.ts` - Central router configuration
 - **API Routers**: `src/server/api/routers/` - Feature-specific tRPC routers
 - **tRPC Setup**: `src/server/api/trpc.ts` - tRPC configuration with context, middleware, and procedures
 - **Client Setup**: `src/trpc/react.tsx` - tRPC React Query integration
 
 ### Authentication
+
 - **NextAuth Config**: `src/server/auth/config.ts` - Authentication providers and callbacks
 - **Auth Entry**: `src/server/auth/index.ts` - Main auth export
 - Currently configured with Discord provider
 
 ### Database
+
 - **Prisma Schema**: `prisma/schema.prisma` - Database schema with SQLite
 - **Database Client**: `src/server/db.ts` - Prisma client configuration
 - Models: User, Account, Session, VerificationToken (NextAuth), Post
 
 ### Environment Variables
+
 - **Environment Config**: `src/env.js` - Type-safe environment variable validation using @t3-oss/env-nextjs
-- Required variables: `AUTH_SECRET`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `DATABASE_URL`
+- Required variables: `AUTH_SECRET`, `OURA_PAT`, `AUTH_DISCORD_SECRET`, `DATABASE_URL`
 
 ### Frontend Structure
+
 - **App Router**: `src/app/` - Next.js 15 App Router structure
 - **Components**: `src/app/_components/` - Shared React components
 - **API Routes**: `src/app/api/` - Next.js API routes for tRPC and NextAuth
 - **Styling**: `src/styles/globals.css` - Global Tailwind CSS styles
 
 ### Key Patterns
+
 - tRPC procedures use `publicProcedure` for unauthenticated endpoints and `protectedProcedure` for authenticated ones
 - Database operations go through Prisma ORM with type safety
 - Client-side tRPC calls use React Query for caching and state management
@@ -122,3 +131,7 @@ const mutation = api.feature.createData.useMutation({
 - **Avoid**: Creating manual API routes in `src/app/api/` for business logic
 - **Exception**: Only use for webhooks, authentication callbacks, or third-party integrations that require specific endpoints
 - **Instead**: Use tRPC procedures for all internal API communication
+
+### OURA API
+
+Anytime you are asked to **fetch data from Oura**, use the API documentation at https://cloud.ouraring.com/v2/docs.

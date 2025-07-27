@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type PersonalInfoResponse } from "~/lib/validations/oura";
 import { api } from "~/trpc/react";
 
 export default function OuraPage() {
   const [token, setToken] = useState("");
   const [personalInfo, setPersonalInfo] = useState<PersonalInfoResponse | null>(null);
+
+  // In development we use the token from the server's environment so the
+  // visitor does not need to provide it manually.
+  const isDev = process.env.NODE_ENV !== "production";
 
   const getPersonalInfoMutation = api.oura.getPersonalInfo.useMutation({
     onSuccess: (data) => {
@@ -18,17 +22,26 @@ export default function OuraPage() {
   });
 
   const fetchPersonalInfo = async () => {
-    if (!token.trim()) {
+    if (!token.trim() && !isDev) {
       return;
     }
 
     try {
-      await getPersonalInfoMutation.mutateAsync({ token });
+      await getPersonalInfoMutation.mutateAsync(isDev ? {} : { token });
     } catch (error) {
       // Error is handled by onError callback
       console.error("Mutation failed:", error);
     }
   };
+
+  // Automatically fetch when running locally so users don't have to click the
+  // button or provide a token.
+  useEffect(() => {
+    if (isDev && !personalInfo && !getPersonalInfoMutation.isPending) {
+      void fetchPersonalInfo();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDev]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
@@ -37,29 +50,31 @@ export default function OuraPage() {
           Oura Ring <span className="text-[hsl(280,100%,70%)]">Personal Data</span>
         </h1>
         
-        <div className="w-full max-w-md space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="token" className="block text-sm font-medium">
-              Personal Access Token
-            </label>
-            <input
-              id="token"
-              type="password"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Enter your Oura PAT..."
-              className="w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-white/50 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+        {!isDev && (
+          <div className="w-full max-w-md space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="token" className="block text-sm font-medium">
+                Personal Access Token
+              </label>
+              <input
+                id="token"
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Enter your Oura PAT..."
+                className="w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-white/50 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            
+            <button
+              onClick={fetchPersonalInfo}
+              disabled={getPersonalInfoMutation.isPending || !token.trim()}
+              className="w-full rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50"
+            >
+              {getPersonalInfoMutation.isPending ? "Loading..." : "Fetch Personal Info"}
+            </button>
           </div>
-          
-          <button
-            onClick={fetchPersonalInfo}
-            disabled={getPersonalInfoMutation.isPending || !token.trim()}
-            className="w-full rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-700 disabled:opacity-50"
-          >
-            {getPersonalInfoMutation.isPending ? "Loading..." : "Fetch Personal Info"}
-          </button>
-        </div>
+        )}
 
         {getPersonalInfoMutation.error && (
           <div className="w-full max-w-md rounded-lg bg-red-500/20 border border-red-500 px-4 py-3 text-red-200">

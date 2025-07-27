@@ -2,7 +2,8 @@ import { z } from "zod";
 
 // Request validation schema
 export const personalInfoRequestSchema = z.object({
-  token: z.string().min(1, "Personal Access Token is required"),
+  // token is optional in development; if omitted, the server will fallback to the OURA_PAT env var
+  token: z.string().optional(),
 });
 
 // Response validation schema based on Oura API documentation

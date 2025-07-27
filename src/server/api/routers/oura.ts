@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { env } from "~/env";
 import { 
   personalInfoRequestSchema, 
   personalInfoResponseSchema,
@@ -10,7 +11,14 @@ export const ouraRouter = createTRPCRouter({
     .input(personalInfoRequestSchema)
     .output(personalInfoResponseSchema)
     .mutation(async ({ input }) => {
-      const { token } = input;
+      const token = input.token ?? env.OURA_PAT;
+
+      if (!token) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Personal Access Token is required",
+        });
+      }
 
       try {
         const response = await fetch(
